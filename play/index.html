@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1C265E">
+  <title>Baralho PJ — Contrata PJ</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="manifest" href="../manifest.json">
+</head>
+<body>
+
+<!-- TELA: Splash -->
+<div id="screen-splash" class="screen active">
+  <div class="splash-wrap">
+    <img src="../assets/logo.svg" alt="Contrata PJ" class="splash-logo">
+    <h1 class="splash-title">Você sabe gerenciar PJ?</h1>
+    <p class="splash-sub">10 questões para testar o que você sabe sobre gestão de PJs na sua empresa.</p>
+    <button class="btn btn-primary" style="margin:0;width:100%;" onclick="showScreen('screen-form')">
+      Começar o quiz →
+    </button>
+  </div>
+</div>
+
+<!-- TELA: Formulário de lead -->
+<div id="screen-form" class="screen">
+  <div class="app-header">
+    <img src="../assets/logo.svg" alt="Contrata PJ">
+  </div>
+  <div class="form-wrap">
+    <div style="margin-bottom:8px;">
+      <h2 style="font-size:18px;margin-bottom:6px;">Antes de começar</h2>
+      <p style="font-size:13px;color:var(--text-dim);">Preencha seus dados para receber o resultado por e-mail.</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="f-name">Nome completo</label>
+      <input class="form-input" id="f-name" type="text" placeholder="João Silva" autocomplete="name">
+      <span class="form-error" id="err-name">Nome obrigatório</span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="f-email">E-mail corporativo</label>
+      <input class="form-input" id="f-email" type="email" placeholder="joao@empresa.com" autocomplete="email">
+      <span class="form-error" id="err-email">E-mail válido obrigatório</span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="f-company">Empresa</label>
+      <input class="form-input" id="f-company" type="text" placeholder="Empresa S.A." autocomplete="organization">
+      <span class="form-error" id="err-company">Empresa obrigatória</span>
+    </div>
+    <button class="btn btn-primary" style="margin:8px 0 0;width:100%;" onclick="submitForm()">
+      Vamos lá →
+    </button>
+  </div>
+</div>
+
+<!-- TELA: Questão -->
+<div id="screen-question" class="screen">
+  <div class="app-header">
+    <img src="../assets/logo.svg" alt="Contrata PJ">
+    <span class="header-label" id="q-counter">1 / 10</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" id="q-progress" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="card-surface">
+    <span class="card-tag" id="q-tag">Questão 1</span>
+    <p class="card-question" id="q-text"></p>
+  </div>
+  <div class="choices" id="q-choices"></div>
+</div>
+
+<!-- TELA: Revelação -->
+<div id="screen-reveal" class="screen">
+  <div class="app-header">
+    <img src="../assets/logo.svg" alt="Contrata PJ">
+    <span class="header-label" id="r-counter">1 / 10</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" id="r-progress" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="card-surface">
+    <span class="card-tag" id="r-tag">Questão 1</span>
+    <p class="card-question dimmed" id="r-text"></p>
+  </div>
+  <div class="choices" id="r-choices"></div>
+  <div class="reveal-box" id="r-box">
+    <div class="reveal-label" id="r-label">Por que esta é a certa?</div>
+    <p class="reveal-text" id="r-explanation"></p>
+  </div>
+  <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()">Próxima →</button>
+</div>
+
+<!-- TELA: Resultado -->
+<div id="screen-result" class="screen">
+  <div class="app-header">
+    <img src="../assets/logo.svg" alt="Contrata PJ">
+  </div>
+  <div class="score-wrap">
+    <div class="score-circle" id="res-score">0</div>
+    <h2 class="score-title" id="res-title">0 de 10 acertos!</h2>
+    <p class="score-sub" id="res-message"></p>
+  </div>
+  <div style="padding:12px 0;">
+    <button class="btn btn-coral" id="btn-cta" onclick="openCTA()">
+      Falar com um especialista →
+    </button>
+    <button class="btn btn-secondary" onclick="showWrongAnswers()">
+      Ver respostas que errei
+    </button>
+  </div>
+  <div id="wrong-list" class="hidden" style="padding:0 16px 16px;"></div>
+</div>
+
+<script src="../data/cards.js"></script>
+<script>
+  let state = {
+    lead: null,
+    currentIndex: 0,
+    answers: [],
+    score: 0
+  };
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function submitForm() {
+    const name    = document.getElementById('f-name').value.trim();
+    const email   = document.getElementById('f-email').value.trim();
+    const company = document.getElementById('f-company').value.trim();
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    setError('err-name',    'f-name',    !name,               'Nome obrigatório');
+    setError('err-email',   'f-email',   !emailRe.test(email),'E-mail válido obrigatório');
+    setError('err-company', 'f-company', !company,            'Empresa obrigatória');
+
+    if (!name || !emailRe.test(email) || !company) return;
+
+    state.lead = { name, email, company, timestamp: new Date().toISOString() };
+    state.currentIndex = 0;
+    state.answers = [];
+    state.score = 0;
+    showQuestion(0);
+  }
+
+  function setError(errId, inputId, show, msg) {
+    const err   = document.getElementById(errId);
+    const input = document.getElementById(inputId);
+    err.textContent = msg;
+    err.classList.toggle('visible', show);
+    input.classList.toggle('error', show);
+  }
+
+  function showQuestion(index) {
+    const card = CARDS[index];
+    const pct  = (index / CARDS.length) * 100;
+    const letters = ['A', 'B', 'C', 'D'];
+
+    document.getElementById('q-counter').textContent  = `${index + 1} / ${CARDS.length}`;
+    document.getElementById('q-tag').textContent      = `Questão ${index + 1}`;
+    document.getElementById('q-text').textContent     = card.question;
+    document.getElementById('q-progress').style.width = pct + '%';
+
+    const container = document.getElementById('q-choices');
+    container.innerHTML = '';
+    card.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = `<span class="choice-letter">${letters[i]}</span>${opt}`;
+      btn.onclick = () => selectAnswer(index, i);
+      container.appendChild(btn);
+    });
+
+    showScreen('screen-question');
+  }
+
+  function selectAnswer(cardIndex, chosenIndex) {
+    state.answers[cardIndex] = chosenIndex;
+    const correct = chosenIndex === CARDS[cardIndex].correctIndex;
+    if (correct) state.score++;
+    showReveal(cardIndex, chosenIndex, correct);
+  }
+
+  function showReveal(cardIndex, chosenIndex, correct) {
+    const card    = CARDS[cardIndex];
+    const letters = ['A', 'B', 'C', 'D'];
+    const pct     = ((cardIndex + 1) / CARDS.length) * 100;
+
+    document.getElementById('r-counter').textContent  = `${cardIndex + 1} / ${CARDS.length}`;
+    document.getElementById('r-text').textContent     = card.question;
+    document.getElementById('r-progress').style.width = pct + '%';
+
+    const tag = document.getElementById('r-tag');
+    tag.textContent = correct ? '✓ Acertou!' : '✗ Errou desta';
+    tag.className   = correct ? 'card-tag correct' : 'card-tag wrong';
+
+    const container = document.getElementById('r-choices');
+    container.innerHTML = '';
+    card.options.forEach((opt, i) => {
+      const div = document.createElement('div');
+      const suffix = i === card.correctIndex ? ' ✓' : (i === chosenIndex ? ' ✗' : '');
+      div.className = 'choice' +
+        (i === card.correctIndex ? ' correct' : i === chosenIndex ? ' wrong' : ' dimmed');
+      div.innerHTML = `<span class="choice-letter">${letters[i]}</span>${opt}${suffix}`;
+      container.appendChild(div);
+    });
+
+    const box   = document.getElementById('r-box');
+    const label = document.getElementById('r-label');
+    const expEl = document.getElementById('r-explanation');
+    box.className     = correct ? 'reveal-box' : 'reveal-box wrong-reveal';
+    label.className   = correct ? 'reveal-label' : 'reveal-label wrong';
+    label.textContent = correct
+      ? `Por que ${letters[card.correctIndex]} é a certa?`
+      : `A certa era ${letters[card.correctIndex]} — por quê?`;
+    expEl.className   = correct ? 'reveal-text' : 'reveal-text wrong';
+    expEl.textContent = card.explanation;
+
+    document.getElementById('btn-next').textContent =
+      cardIndex === CARDS.length - 1 ? 'Ver resultado →' : 'Próxima →';
+
+    showScreen('screen-reveal');
+  }
+
+  function nextQuestion() {
+    const next = state.currentIndex + 1;
+    if (next >= CARDS.length) {
+      saveLead();
+      showResult();
+    } else {
+      state.currentIndex = next;
+      showQuestion(next);
+    }
+  }
+
+  const MESSAGES = [
+    { max: 4,  text: 'Sua gestão PJ tem riscos sérios. A Contrata PJ pode ajudar a organizar tudo.' },
+    { max: 7,  text: 'Você vai bem — mas os erros podem custar caro na prática.' },
+    { max: 10, text: 'Impressionante! Quer ver como a Contrata PJ vai além do básico?' }
+  ];
+
+  function showResult() {
+    const s   = state.score;
+    const msg = MESSAGES.find(m => s <= m.max).text;
+    document.getElementById('res-score').textContent   = s;
+    document.getElementById('res-title').textContent   = `${s} de ${CARDS.length} corretas!`;
+    document.getElementById('res-message').textContent = msg;
+    showScreen('screen-result');
+  }
+
+  function openCTA() {
+    window.open('https://wa.me/5511999999999?text=Ol%C3%A1!%20Fiz%20o%20quiz%20do%20CONARH%20e%20quero%20saber%20mais.', '_blank');
+  }
+
+  function showWrongAnswers() {
+    const list    = document.getElementById('wrong-list');
+    const letters = ['A', 'B', 'C', 'D'];
+    list.classList.remove('hidden');
+    list.innerHTML = '<h3 style="font-size:14px;margin-bottom:12px;">Respostas que você errou:</h3>';
+    CARDS.forEach((card, i) => {
+      if (state.answers[i] !== card.correctIndex) {
+        list.innerHTML += `
+          <div style="margin-bottom:14px;padding:12px;background:var(--card-bg);border-radius:10px;font-size:13px;">
+            <p style="margin-bottom:6px;font-weight:600;">${i + 1}. ${card.question}</p>
+            <p style="color:#fca5a5;">Sua resposta: ${letters[state.answers[i]]} — ${card.options[state.answers[i]]}</p>
+            <p style="color:#4ade80;margin-top:4px;">Certa: ${letters[card.correctIndex]} — ${card.options[card.correctIndex]}</p>
+          </div>`;
+      }
+    });
+  }
+
+  function saveLead() {
+    const leads = JSON.parse(localStorage.getItem('cpj_leads') || '[]');
+    leads.push({ ...state.lead, score: state.score, answers: [...state.answers] });
+    localStorage.setItem('cpj_leads', JSON.stringify(leads));
+  }
+</script>
+</body>
+</html>
