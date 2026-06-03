@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1C265E">
+  <title>Presenter — Contrata PJ</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- TELA: Dashboard -->
+<div id="screen-dashboard" class="screen active">
+  <div class="app-header">
+    <img src="../assets/logo.svg" alt="Contrata PJ">
+    <span class="header-label">CONSULTOR</span>
+  </div>
+  <div class="presenter-section">
+    <div class="presenter-title">QR Code — Modo Visitante</div>
+    <div class="qr-wrap" id="qr-container"></div>
+    <p style="text-align:center;font-size:11px;color:var(--text-dim);margin-top:8px;" id="qr-url"></p>
+  </div>
+  <div class="presenter-section" style="border-top:1px solid var(--border);text-align:center;">
+    <div class="lead-count" id="lead-count">0</div>
+    <div class="lead-count-label">leads capturados hoje</div>
+  </div>
+  <div class="presenter-section" style="display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);">
+    <button class="btn btn-primary" style="margin:0;width:100%;" onclick="initPresent()">
+      Modo apresentação
+    </button>
+    <button class="btn btn-secondary" style="margin:0;width:100%;" onclick="showLeads()">
+      Ver leads
+    </button>
+  </div>
+</div>
+
+<!-- TELA: Apresentação -->
+<div id="screen-present" class="screen">
+  <div class="app-header">
+    <img src="../assets/logo.svg" alt="Contrata PJ">
+    <span class="header-label" id="p-counter">1 / 10</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" id="p-progress" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="card-surface">
+    <span class="card-tag" id="p-tag">Questão 1</span>
+    <p class="card-question" id="p-text"></p>
+  </div>
+  <div class="choices" id="p-choices"></div>
+  <div id="p-reveal" class="hidden">
+    <div class="reveal-box" id="p-box">
+      <div class="reveal-label" id="p-label"></div>
+      <p class="reveal-text" id="p-explanation"></p>
+    </div>
+    <div style="display:flex;gap:8px;padding:0 12px 12px;">
+      <button class="btn btn-secondary" style="margin:0;flex:1;" onclick="initPresent()">← Reiniciar</button>
+      <button class="btn btn-primary"   style="margin:0;flex:1;" id="p-btn-next" onclick="presentNext()">Próxima →</button>
+    </div>
+  </div>
+  <button class="btn btn-secondary" style="margin-top:8px;" onclick="showScreen('screen-dashboard')">
+    ← Voltar ao dashboard
+  </button>
+</div>
+
+<!-- TELA: Lista de leads -->
+<div id="screen-leads" class="screen">
+  <div class="app-header">
+    <img src="../assets/logo.svg" alt="Contrata PJ">
+    <span class="header-label">LEADS</span>
+  </div>
+  <div class="presenter-section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span id="leads-count-label" style="font-size:13px;color:var(--text-dim);"></span>
+      <button onclick="exportCSV()" style="background:var(--blue);border:none;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+        Exportar CSV
+      </button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="leads-table">
+        <thead>
+          <tr><th>Nome</th><th>Empresa</th><th>E-mail</th><th>Pts</th><th>Horário</th></tr>
+        </thead>
+        <tbody id="leads-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <button class="btn btn-secondary" onclick="showScreen('screen-dashboard')">← Voltar</button>
+</div>
+
+<script src="../data/cards.js"></script>
+<script>
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // ── Dashboard ──────────────────────────────────────
+  function initDashboard() {
+    const playUrl = window.location.origin + '/play/';
+    document.getElementById('qr-url').textContent = playUrl;
+    const container = document.getElementById('qr-container');
+    container.innerHTML = '';
+    new QRCode(container, {
+      text: playUrl,
+      width: 180, height: 180,
+      colorDark: '#1C265E',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    updateLeadCount();
+  }
+
+  function updateLeadCount() {
+    const leads = JSON.parse(localStorage.getItem('cpj_leads') || '[]');
+    const today = new Date().toDateString();
+    const count = leads.filter(l => new Date(l.timestamp).toDateString() === today).length;
+    document.getElementById('lead-count').textContent = count;
+  }
+
+  // ── Presentation mode ──────────────────────────────
+  let presentIndex = 0;
+
+  function initPresent() {
+    presentIndex = 0;
+    showPresentCard(0);
+    showScreen('screen-present');
+  }
+
+  function showPresentCard(index) {
+    const card    = CARDS[index];
+    const letters = ['A', 'B', 'C', 'D'];
+    document.getElementById('p-counter').textContent  = `${index + 1} / ${CARDS.length}`;
+    document.getElementById('p-tag').textContent      = `Questão ${index + 1}`;
+    document.getElementById('p-text').textContent     = card.question;
+    document.getElementById('p-progress').style.width = (index / CARDS.length) * 100 + '%';
+    document.getElementById('p-reveal').classList.add('hidden');
+
+    const container = document.getElementById('p-choices');
+    container.innerHTML = '';
+    card.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = `<span class="choice-letter">${letters[i]}</span>${opt}`;
+      btn.onclick = () => revealPresent(index, i);
+      container.appendChild(btn);
+    });
+  }
+
+  function revealPresent(cardIndex, chosenIndex) {
+    const card    = CARDS[cardIndex];
+    const letters = ['A', 'B', 'C', 'D'];
+    const correct = chosenIndex === card.correctIndex;
+
+    document.querySelectorAll('#p-choices .choice').forEach((btn, i) => {
+      btn.disabled  = true;
+      btn.className = 'choice' +
+        (i === card.correctIndex ? ' correct' : i === chosenIndex ? ' wrong' : ' dimmed');
+    });
+
+    const box   = document.getElementById('p-box');
+    const label = document.getElementById('p-label');
+    const expEl = document.getElementById('p-explanation');
+    box.className     = correct ? 'reveal-box' : 'reveal-box wrong-reveal';
+    label.className   = correct ? 'reveal-label' : 'reveal-label wrong';
+    label.textContent = `A certa é ${letters[card.correctIndex]} — por quê?`;
+    expEl.className   = correct ? 'reveal-text' : 'reveal-text wrong';
+    expEl.textContent = card.explanation;
+
+    document.getElementById('p-btn-next').textContent =
+      cardIndex === CARDS.length - 1 ? 'Reiniciar' : 'Próxima →';
+    document.getElementById('p-reveal').classList.remove('hidden');
+  }
+
+  function presentNext() {
+    const next = presentIndex + 1;
+    if (next >= CARDS.length) {
+      initPresent();
+    } else {
+      presentIndex = next;
+      showPresentCard(next);
+    }
+  }
+
+  // ── Leads ──────────────────────────────────────────
+  function showLeads() {
+    const leads = JSON.parse(localStorage.getItem('cpj_leads') || '[]');
+    document.getElementById('leads-count-label').textContent = `${leads.length} lead(s) no dispositivo`;
+    const tbody = document.getElementById('leads-body');
+    tbody.innerHTML = '';
+    if (leads.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim);">Nenhum lead ainda.</td></tr>';
+    } else {
+      leads.slice().reverse().forEach(l => {
+        const time = new Date(l.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        tbody.innerHTML += `<tr>
+          <td>${l.name}</td>
+          <td>${l.company}</td>
+          <td style="font-size:11px;">${l.email}</td>
+          <td style="text-align:center;">${l.score}/10</td>
+          <td style="font-size:11px;">${time}</td>
+        </tr>`;
+      });
+    }
+    showScreen('screen-leads');
+  }
+
+  // ── CSV export ─────────────────────────────────────
+  function exportCSV() {
+    const leads = JSON.parse(localStorage.getItem('cpj_leads') || '[]');
+    if (leads.length === 0) { alert('Nenhum lead para exportar.'); return; }
+    const header = ['Nome', 'Empresa', 'E-mail', 'Pontuação', 'Data/Hora'];
+    const rows   = leads.map(l => [
+      `"${l.name}"`, `"${l.company}"`, `"${l.email}"`,
+      l.score,
+      `"${new Date(l.timestamp).toLocaleString('pt-BR')}"`
+    ].join(','));
+    const csv  = [header.join(','), ...rows].join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), {
+      href: url,
+      download: `leads-conarh-${new Date().toISOString().slice(0, 10)}.csv`
+    });
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ── Init ───────────────────────────────────────────
+  initDashboard();
+</script>
+</body>
+</html>
