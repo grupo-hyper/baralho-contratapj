@@ -87,8 +87,15 @@ body {
 .btn-primary   { background: var(--blue);  color: #fff; }
 .btn-coral     { background: var(--coral); color: #fff; }
 .btn-secondary {
-  background: transparent; border: 1.5px solid var(--border);
+  background: transparent; border: 1.5px solid rgba(255,255,255,0.3);
   color: var(--text-dim); font-size: 13px;
+}
+
+.btn:hover  { opacity: 0.88; }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.choice:hover:not(:disabled):not(.correct):not(.wrong):not(.dimmed) {
+  border-color: var(--blue); background: rgba(66,89,223,.08);
 }
 
 /* Form */
