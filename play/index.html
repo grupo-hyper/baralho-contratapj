@@ -281,5 +281,10 @@
     localStorage.setItem('cpj_leads', JSON.stringify(leads));
   }
 </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('../sw.js');
+  }
+</script>
 </body>
 </html>
