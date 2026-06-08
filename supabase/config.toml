@@ -1,0 +1,10 @@
+[project]
+id = "hyper-sites-landing-pages"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+
+[functions]
+verify_jwt = false

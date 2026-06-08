@@ -326,10 +326,33 @@
     });
   }
 
+  // URL da Edge Function — troque pela URL real após linkar o projeto Supabase
+  const EDGE_FN_URL = 'https://hyper-sites-landing-pages.supabase.co/functions/v1/save-lead';
+
   function saveLead() {
+    const lead = { ...state.lead, score: state.score, answers: [...state.answers] };
+
+    // salva localmente (fallback offline)
     const leads = JSON.parse(localStorage.getItem('cpj_leads') || '[]');
-    leads.push({ ...state.lead, score: state.score, answers: [...state.answers] });
+    leads.push(lead);
     localStorage.setItem('cpj_leads', JSON.stringify(leads));
+
+    // envia para o Supabase (fire-and-forget — não bloqueia o fluxo)
+    fetch(EDGE_FN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name:    lead.name,
+        email:   lead.email,
+        phone:   lead.phone,
+        company: lead.company,
+        score:   lead.score,
+        answers: lead.answers,
+        event:   'CONARH 2026',
+      }),
+    }).catch(() => {
+      // falha silenciosa — o dado já está salvo no localStorage
+    });
   }
 </script>
 <script>
