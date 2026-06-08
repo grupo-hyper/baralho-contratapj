@@ -1,10 +1,7 @@
-[project]
-id = "hyper-sites-landing-pages"
+project_id = "kisteehhsgnyufyrvxxh"
 
 [api]
 enabled = true
-port = 54321
-schemas = ["public"]
 
-[functions]
+[functions.save-lead]
 verify_jwt = false
