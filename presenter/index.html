@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1C265E">
+  <meta name="theme-color" content="#0B0F2A">
   <title>Presenter — Contrata PJ</title>
   <link rel="stylesheet" href="../css/main.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -14,24 +14,23 @@
 <div id="screen-dashboard" class="screen active">
   <div class="app-header">
     <img src="../assets/logo.svg" alt="Contrata PJ">
-    <span class="header-label">CONSULTOR</span>
+    <span class="header-label">Consultor</span>
   </div>
+
   <div class="presenter-section">
     <div class="presenter-title">QR Code — Modo Visitante</div>
     <div class="qr-wrap" id="qr-container"></div>
-    <p style="text-align:center;font-size:11px;color:var(--text-dim);margin-top:8px;" id="qr-url"></p>
+    <p style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px;" id="qr-url"></p>
   </div>
-  <div class="presenter-section" style="border-top:1px solid var(--border);text-align:center;">
+
+  <div class="presenter-section" style="text-align:center;">
     <div class="lead-count" id="lead-count">0</div>
     <div class="lead-count-label">leads capturados hoje</div>
   </div>
-  <div class="presenter-section" style="display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);">
-    <button class="btn btn-primary" style="margin:0;width:100%;" onclick="initPresent()">
-      Modo apresentação
-    </button>
-    <button class="btn btn-secondary" style="margin:0;width:100%;" onclick="showLeads()">
-      Ver leads
-    </button>
+
+  <div class="presenter-section" style="display:flex;flex-direction:column;gap:10px;">
+    <button class="btn btn-primary" style="margin:0;width:100%;" onclick="initPresent()">Modo apresentação</button>
+    <button class="btn btn-secondary" style="margin:0;width:100%;" onclick="showLeads()">Ver leads</button>
   </div>
 </div>
 
@@ -52,37 +51,37 @@
   </div>
   <div class="choices" id="p-choices"></div>
   <div id="p-reveal" class="hidden">
-    <div class="reveal-box" id="p-box">
-      <div class="reveal-label" id="p-label"></div>
-      <p class="reveal-text" id="p-explanation"></p>
+    <div style="padding:14px 0 8px;">
+      <div class="reveal-box" id="p-box">
+        <div class="reveal-label" id="p-label"></div>
+        <p class="reveal-text" id="p-explanation"></p>
+      </div>
     </div>
-    <div style="display:flex;gap:8px;padding:0 12px 12px;">
+    <div style="display:flex;gap:8px;padding:0 14px 4px;">
       <button class="btn btn-secondary" style="margin:0;flex:1;" onclick="initPresent()">← Reiniciar</button>
-      <button class="btn btn-primary"   style="margin:0;flex:1;" id="p-btn-next" onclick="presentNext()">Próxima →</button>
+      <button class="btn btn-primary" style="margin:0;flex:1;" id="p-btn-next" onclick="presentNext()">Próxima →</button>
     </div>
   </div>
-  <button class="btn btn-secondary" style="margin-top:8px;" onclick="showScreen('screen-dashboard')">
-    ← Voltar ao dashboard
-  </button>
+  <button class="btn btn-secondary" style="margin-top:4px;" onclick="showScreen('screen-dashboard')">← Dashboard</button>
 </div>
 
 <!-- TELA: Lista de leads -->
 <div id="screen-leads" class="screen">
   <div class="app-header">
     <img src="../assets/logo.svg" alt="Contrata PJ">
-    <span class="header-label">LEADS</span>
+    <span class="header-label">Leads</span>
   </div>
   <div class="presenter-section">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <span id="leads-count-label" style="font-size:13px;color:var(--text-dim);"></span>
-      <button onclick="exportCSV()" style="background:var(--blue);border:none;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <span id="leads-count-label" style="font-size:13px;color:var(--text-dim);font-weight:500;"></span>
+      <button onclick="exportCSV()" style="background:var(--blue);border:none;color:#fff;padding:8px 16px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.02em;">
         Exportar CSV
       </button>
     </div>
     <div style="overflow-x:auto;">
       <table class="leads-table">
         <thead>
-          <tr><th>Nome</th><th>Empresa</th><th>E-mail</th><th>Pts</th><th>Horário</th></tr>
+          <tr><th>Nome</th><th>Empresa</th><th>Telefone</th><th>E-mail</th><th>Pts</th><th>Hora</th></tr>
         </thead>
         <tbody id="leads-body"></tbody>
       </table>
@@ -99,7 +98,6 @@
     window.scrollTo(0, 0);
   }
 
-  // ── Dashboard ──────────────────────────────────────
   function initDashboard() {
     const playUrl = window.location.origin + '/play/';
     document.getElementById('qr-url').textContent = playUrl;
@@ -108,7 +106,7 @@
     new QRCode(container, {
       text: playUrl,
       width: 180, height: 180,
-      colorDark: '#1C265E',
+      colorDark: '#0B0F2A',
       colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.H
     });
@@ -122,7 +120,6 @@
     document.getElementById('lead-count').textContent = count;
   }
 
-  // ── Presentation mode ──────────────────────────────
   let presentIndex = 0;
 
   function initPresent() {
@@ -186,22 +183,22 @@
     }
   }
 
-  // ── Leads ──────────────────────────────────────────
   function showLeads() {
     const leads = JSON.parse(localStorage.getItem('cpj_leads') || '[]');
     document.getElementById('leads-count-label').textContent = `${leads.length} lead(s) no dispositivo`;
     const tbody = document.getElementById('leads-body');
     tbody.innerHTML = '';
     if (leads.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim);">Nenhum lead ainda.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhum lead ainda.</td></tr>';
     } else {
       leads.slice().reverse().forEach(l => {
         const time = new Date(l.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         tbody.innerHTML += `<tr>
           <td>${l.name}</td>
           <td>${l.company}</td>
-          <td style="font-size:11px;">${l.email}</td>
-          <td style="text-align:center;">${l.score}/10</td>
+          <td style="font-size:11px;">${l.phone || '—'}</td>
+          <td style="font-size:11px;color:var(--text-muted);">${l.email}</td>
+          <td style="text-align:center;font-weight:700;color:#8FA8FF;">${l.score}/${CARDS.length}</td>
           <td style="font-size:11px;">${time}</td>
         </tr>`;
       });
@@ -209,13 +206,12 @@
     showScreen('screen-leads');
   }
 
-  // ── CSV export ─────────────────────────────────────
   function exportCSV() {
     const leads = JSON.parse(localStorage.getItem('cpj_leads') || '[]');
     if (leads.length === 0) { alert('Nenhum lead para exportar.'); return; }
-    const header = ['Nome', 'Empresa', 'E-mail', 'Pontuação', 'Data/Hora'];
+    const header = ['Nome', 'Empresa', 'Telefone', 'E-mail', 'Pontuação', 'Data/Hora'];
     const rows   = leads.map(l => [
-      `"${l.name}"`, `"${l.company}"`, `"${l.email}"`,
+      `"${l.name}"`, `"${l.company}"`, `"${l.phone || ''}"`, `"${l.email}"`,
       l.score,
       `"${new Date(l.timestamp).toLocaleString('pt-BR')}"`
     ].join(','));
@@ -230,13 +226,10 @@
     URL.revokeObjectURL(url);
   }
 
-  // ── Init ───────────────────────────────────────────
   initDashboard();
 </script>
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('../sw.js');
-  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js');
 </script>
 </body>
 </html>

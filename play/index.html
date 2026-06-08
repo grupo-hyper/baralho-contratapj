@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1C265E">
+  <meta name="theme-color" content="#0B0F2A">
   <title>Baralho PJ — Contrata PJ</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="manifest" href="../manifest.json">
@@ -14,11 +14,24 @@
 <div id="screen-splash" class="screen active">
   <div class="splash-wrap">
     <img src="../assets/logo.svg" alt="Contrata PJ" class="splash-logo">
+
+    <!-- baralho em leque -->
+    <div class="deck-hero" onclick="showScreen('screen-form')" role="button" aria-label="Começar o quiz">
+      <div class="deck-card left">
+        <img src="../assets/icon.svg" alt="" class="deck-card-logo">
+      </div>
+      <div class="deck-card right">
+        <img src="../assets/icon.svg" alt="" class="deck-card-logo">
+      </div>
+      <div class="deck-card center">
+        <img src="../assets/icon.svg" alt="" class="deck-card-logo">
+      </div>
+    </div>
+
+    <div class="splash-badge">Quiz Interativo</div>
     <h1 class="splash-title">Você sabe gerenciar PJ?</h1>
-    <p class="splash-sub">10 questões para testar o que você sabe sobre gestão de PJs na sua empresa.</p>
-    <button class="btn btn-primary" style="margin:0;width:100%;" onclick="showScreen('screen-form')">
-      Começar o quiz →
-    </button>
+    <p class="splash-sub">5 questões para testar o que você sabe sobre gestão de PJs na sua empresa.</p>
+    <button class="splash-cta" onclick="showScreen('screen-form')">Começar o quiz →</button>
   </div>
 </div>
 
@@ -26,11 +39,12 @@
 <div id="screen-form" class="screen">
   <div class="app-header">
     <img src="../assets/logo.svg" alt="Contrata PJ">
+    <span class="header-label">Cadastro</span>
   </div>
   <div class="form-wrap">
-    <div style="margin-bottom:8px;">
-      <h2 style="font-size:18px;margin-bottom:6px;">Antes de começar</h2>
-      <p style="font-size:13px;color:var(--text-dim);">Preencha seus dados para receber o resultado por e-mail.</p>
+    <div style="margin-bottom:4px;">
+      <h2 style="font-size:18px;font-weight:800;margin-bottom:6px;letter-spacing:-.01em;">Antes de começar</h2>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.55;">Preencha seus dados para receber o resultado por e-mail.</p>
     </div>
     <div class="form-group">
       <label class="form-label" for="f-name">Nome completo</label>
@@ -43,13 +57,16 @@
       <span class="form-error" id="err-email">E-mail válido obrigatório</span>
     </div>
     <div class="form-group">
+      <label class="form-label" for="f-phone">Telefone / WhatsApp</label>
+      <input class="form-input" id="f-phone" type="tel" placeholder="(11) 99999-9999" autocomplete="tel" inputmode="tel">
+      <span class="form-error" id="err-phone">Telefone válido obrigatório</span>
+    </div>
+    <div class="form-group">
       <label class="form-label" for="f-company">Empresa</label>
       <input class="form-input" id="f-company" type="text" placeholder="Empresa S.A." autocomplete="organization">
       <span class="form-error" id="err-company">Empresa obrigatória</span>
     </div>
-    <button class="btn btn-primary" style="margin:8px 0 0;width:100%;" onclick="submitForm()">
-      Vamos lá →
-    </button>
+    <button class="btn btn-primary" style="margin:4px 0 0;width:100%;" onclick="submitForm()">Vamos lá →</button>
   </div>
 </div>
 
@@ -64,9 +81,28 @@
       <div class="progress-fill" id="q-progress" style="width:0%"></div>
     </div>
   </div>
-  <div class="card-surface">
-    <span class="card-tag" id="q-tag">Questão 1</span>
-    <p class="card-question" id="q-text"></p>
+  <div class="deck-wrap">
+    <div class="flip-card" id="q-flip" onclick="flipQuestionCard()">
+      <div class="flip-inner" id="q-flip-inner">
+        <!-- costas da carta -->
+        <div class="flip-face flip-back v0" id="q-flip-back">
+          <img src="../assets/icon.svg" alt="" class="card-back-logo">
+          <div class="card-back-num" id="q-back-num">1</div>
+          <div class="card-back-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            Toque para virar
+          </div>
+        </div>
+        <!-- frente da carta (pergunta) -->
+        <div class="flip-face flip-front">
+          <span class="q-number" id="q-number">1</span>
+          <span class="card-tag" id="q-tag">Questão 1</span>
+          <p class="card-question" id="q-text"></p>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="choices" id="q-choices"></div>
 </div>
@@ -83,13 +119,16 @@
     </div>
   </div>
   <div class="card-surface">
+    <span class="q-number" id="r-number">1</span>
     <span class="card-tag" id="r-tag">Questão 1</span>
     <p class="card-question dimmed" id="r-text"></p>
   </div>
   <div class="choices" id="r-choices"></div>
-  <div class="reveal-box" id="r-box">
-    <div class="reveal-label" id="r-label">Por que esta é a certa?</div>
-    <p class="reveal-text" id="r-explanation"></p>
+  <div style="padding:14px 0 8px;">
+    <div class="reveal-box" id="r-box">
+      <div class="reveal-label" id="r-label">Por que esta é a certa?</div>
+      <p class="reveal-text" id="r-explanation"></p>
+    </div>
   </div>
   <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()">Próxima →</button>
 </div>
@@ -104,25 +143,16 @@
     <h2 class="score-title" id="res-title">0 de 10 acertos!</h2>
     <p class="score-sub" id="res-message"></p>
   </div>
-  <div style="padding:12px 0;">
-    <button class="btn btn-coral" id="btn-cta" onclick="openCTA()">
-      Falar com um especialista →
-    </button>
-    <button class="btn btn-secondary" onclick="showWrongAnswers()">
-      Ver respostas que errei
-    </button>
+  <div style="padding:4px 0;">
+    <button class="btn btn-coral" id="btn-cta" onclick="openCTA()">Falar com um especialista →</button>
+    <button class="btn btn-secondary" onclick="showWrongAnswers()">Ver respostas que errei</button>
   </div>
-  <div id="wrong-list" class="hidden" style="padding:0 16px 16px;"></div>
+  <div id="wrong-list" class="hidden" style="padding:0 14px 20px;"></div>
 </div>
 
 <script src="../data/cards.js"></script>
 <script>
-  let state = {
-    lead: null,
-    currentIndex: 0,
-    answers: [],
-    score: 0
-  };
+  let state = { lead: null, currentIndex: 0, answers: [], score: 0 };
 
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -133,16 +163,19 @@
   function submitForm() {
     const name    = document.getElementById('f-name').value.trim();
     const email   = document.getElementById('f-email').value.trim();
+    const phone   = document.getElementById('f-phone').value.trim();
     const company = document.getElementById('f-company').value.trim();
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneOk = phone.replace(/\D/g, '').length >= 10; // DDD + número
 
-    setError('err-name',    'f-name',    !name,               'Nome obrigatório');
-    setError('err-email',   'f-email',   !emailRe.test(email),'E-mail válido obrigatório');
-    setError('err-company', 'f-company', !company,            'Empresa obrigatória');
+    setError('err-name',    'f-name',    !name,                'Nome obrigatório');
+    setError('err-email',   'f-email',   !emailRe.test(email), 'E-mail válido obrigatório');
+    setError('err-phone',   'f-phone',   !phoneOk,             'Telefone válido obrigatório');
+    setError('err-company', 'f-company', !company,             'Empresa obrigatória');
 
-    if (!name || !emailRe.test(email) || !company) return;
+    if (!name || !emailRe.test(email) || !phoneOk || !company) return;
 
-    state.lead = { name, email, company, timestamp: new Date().toISOString() };
+    state.lead = { name, email, phone, company, timestamp: new Date().toISOString() };
     state.currentIndex = 0;
     state.answers = [];
     state.score = 0;
@@ -158,16 +191,23 @@
   }
 
   function showQuestion(index) {
-    const card = CARDS[index];
-    const pct  = (index / CARDS.length) * 100;
+    const card    = CARDS[index];
+    const pct     = (index / CARDS.length) * 100;
     const letters = ['A', 'B', 'C', 'D'];
 
-    document.getElementById('q-counter').textContent  = `${index + 1} / ${CARDS.length}`;
-    document.getElementById('q-tag').textContent      = `Questão ${index + 1}`;
-    document.getElementById('q-text').textContent     = card.question;
-    document.getElementById('q-progress').style.width = pct + '%';
+    document.getElementById('q-counter').textContent   = `${index + 1} / ${CARDS.length}`;
+    document.getElementById('q-tag').textContent        = `Questão ${index + 1}`;
+    document.getElementById('q-text').textContent       = card.question;
+    document.getElementById('q-number').textContent     = index + 1;
+    document.getElementById('q-back-num').textContent   = index + 1;
+    document.getElementById('q-progress').style.width  = pct + '%';
 
+    // alterna a variação de verso da carta
+    document.getElementById('q-flip-back').className = 'flip-face flip-back v' + (index % 4);
+    // reseta a carta para o estado "virada para baixo"
+    document.getElementById('q-flip-inner').classList.remove('flipped');
     const container = document.getElementById('q-choices');
+    container.classList.remove('revealed');
     container.innerHTML = '';
     card.options.forEach((opt, i) => {
       const btn = document.createElement('button');
@@ -178,6 +218,16 @@
     });
 
     showScreen('screen-question');
+  }
+
+  function flipQuestionCard() {
+    const inner = document.getElementById('q-flip-inner');
+    if (inner.classList.contains('flipped')) return;
+    inner.classList.add('flipped');
+    // revela as alternativas após a carta terminar de virar
+    setTimeout(() => {
+      document.getElementById('q-choices').classList.add('revealed');
+    }, 380);
   }
 
   function selectAnswer(cardIndex, chosenIndex) {
@@ -194,6 +244,7 @@
 
     document.getElementById('r-counter').textContent  = `${cardIndex + 1} / ${CARDS.length}`;
     document.getElementById('r-text').textContent     = card.question;
+    document.getElementById('r-number').textContent   = cardIndex + 1;
     document.getElementById('r-progress').style.width = pct + '%';
 
     const tag = document.getElementById('r-tag');
@@ -240,9 +291,9 @@
   }
 
   const MESSAGES = [
-    { max: 4,  text: 'Sua gestão PJ tem riscos sérios. A Contrata PJ pode ajudar a organizar tudo.' },
-    { max: 7,  text: 'Você vai bem — mas os erros podem custar caro na prática.' },
-    { max: 10, text: 'Impressionante! Quer ver como a Contrata PJ vai além do básico?' }
+    { max: 2, text: 'Sua gestão PJ tem riscos sérios. A Contrata PJ pode ajudar a organizar tudo.' },
+    { max: 4, text: 'Você vai bem — mas os erros podem custar caro na prática.' },
+    { max: 5, text: 'Impressionante! Quer ver como a Contrata PJ vai além do básico?' }
   ];
 
   function showResult() {
@@ -262,14 +313,14 @@
     const list    = document.getElementById('wrong-list');
     const letters = ['A', 'B', 'C', 'D'];
     list.classList.remove('hidden');
-    list.innerHTML = '<h3 style="font-size:14px;margin-bottom:12px;">Respostas que você errou:</h3>';
+    list.innerHTML = '<h3 style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;">Respostas que você errou</h3>';
     CARDS.forEach((card, i) => {
       if (state.answers[i] !== card.correctIndex) {
         list.innerHTML += `
-          <div style="margin-bottom:14px;padding:12px;background:var(--card-bg);border-radius:10px;font-size:13px;">
-            <p style="margin-bottom:6px;font-weight:600;">${i + 1}. ${card.question}</p>
-            <p style="color:#fca5a5;">Sua resposta: ${letters[state.answers[i]]} — ${card.options[state.answers[i]]}</p>
-            <p style="color:#4ade80;margin-top:4px;">Certa: ${letters[card.correctIndex]} — ${card.options[card.correctIndex]}</p>
+          <div style="margin-bottom:12px;padding:14px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;">
+            <p style="margin-bottom:8px;font-weight:600;line-height:1.5;">${i + 1}. ${card.question}</p>
+            <p style="color:#FCA5A5;font-size:12px;">Sua resposta: ${letters[state.answers[i]]} — ${card.options[state.answers[i]]}</p>
+            <p style="color:#5EFFA0;margin-top:4px;font-size:12px;">Certa: ${letters[card.correctIndex]} — ${card.options[card.correctIndex]}</p>
           </div>`;
       }
     });
@@ -282,9 +333,7 @@
   }
 </script>
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('../sw.js');
-  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js');
 </script>
 </body>
 </html>
