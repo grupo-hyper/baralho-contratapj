@@ -30,7 +30,7 @@
 
     <div class="splash-badge">Quiz Interativo</div>
     <h1 class="splash-title">Você sabe gerenciar PJ?</h1>
-    <p class="splash-sub">5 questões para testar o que você sabe sobre gestão de PJs na sua empresa.</p>
+    <p class="splash-sub">8 questões para testar o que você sabe sobre gestão de PJs na sua empresa.</p>
     <button class="splash-cta" onclick="showScreen('screen-form')">Começar o quiz →</button>
   </div>
 </div>
@@ -74,9 +74,13 @@
 <div id="screen-question" class="screen">
   <div class="app-header">
     <img src="../assets/logo.svg" alt="Contrata PJ">
-    <span class="header-label" id="q-counter">1 / 10</span>
+    <span class="header-label" id="q-counter">1 / 8</span>
   </div>
   <div class="progress-wrap">
+    <div class="progress-meta">
+      <span class="pm-step" id="q-step">Questão 1 de 8</span>
+      <span class="pm-left" id="q-left"></span>
+    </div>
     <div class="progress-track">
       <div class="progress-fill" id="q-progress" style="width:0%"></div>
     </div>
@@ -111,9 +115,13 @@
 <div id="screen-reveal" class="screen">
   <div class="app-header">
     <img src="../assets/logo.svg" alt="Contrata PJ">
-    <span class="header-label" id="r-counter">1 / 10</span>
+    <span class="header-label" id="r-counter">1 / 8</span>
   </div>
   <div class="progress-wrap">
+    <div class="progress-meta">
+      <span class="pm-step" id="r-step">Questão 1 de 8</span>
+      <span class="pm-left" id="r-left"></span>
+    </div>
     <div class="progress-track">
       <div class="progress-fill" id="r-progress" style="width:0%"></div>
     </div>
@@ -138,9 +146,13 @@
   <div class="app-header">
     <img src="../assets/logo.svg" alt="Contrata PJ">
   </div>
-  <div class="score-wrap">
+  <div class="score-wrap" id="result-hero">
+    <div class="result-alert" id="result-alert">
+      <span class="result-alert-icon" id="result-icon"></span>
+      <span class="result-alert-text" id="result-headline"></span>
+    </div>
     <div class="score-circle" id="res-score">0</div>
-    <h2 class="score-title" id="res-title">0 de 10 acertos!</h2>
+    <h2 class="score-title" id="res-title">0 de 8 acertos!</h2>
     <p class="score-sub" id="res-message"></p>
   </div>
   <div style="padding:4px 0;">
@@ -190,6 +202,14 @@
     input.classList.toggle('error', show);
   }
 
+  // "Faltam N questões" — quantas ainda restam APÓS a questão atual
+  function remainingLabel(index) {
+    const left = CARDS.length - (index + 1);
+    if (left <= 0)   return 'Última questão!';
+    if (left === 1)  return 'Falta 1 questão';
+    return `Faltam ${left} questões`;
+  }
+
   function showQuestion(index) {
     const card    = CARDS[index];
     const pct     = (index / CARDS.length) * 100;
@@ -201,6 +221,8 @@
     document.getElementById('q-number').textContent     = index + 1;
     document.getElementById('q-back-num').textContent   = index + 1;
     document.getElementById('q-progress').style.width  = pct + '%';
+    document.getElementById('q-step').textContent       = `Questão ${index + 1} de ${CARDS.length}`;
+    document.getElementById('q-left').textContent       = remainingLabel(index);
 
     // alterna a variação de verso da carta
     document.getElementById('q-flip-back').className = 'flip-face flip-back v' + (index % 4);
@@ -246,6 +268,9 @@
     document.getElementById('r-text').textContent     = card.question;
     document.getElementById('r-number').textContent   = cardIndex + 1;
     document.getElementById('r-progress').style.width = pct + '%';
+    document.getElementById('r-step').textContent     = `Questão ${cardIndex + 1} de ${CARDS.length}`;
+    document.getElementById('r-left').textContent     =
+      cardIndex === CARDS.length - 1 ? 'Fim do quiz!' : remainingLabel(cardIndex);
 
     const tag = document.getElementById('r-tag');
     tag.textContent = correct ? '✓ Acertou!' : '✗ Errou desta';
@@ -290,18 +315,42 @@
     }
   }
 
-  const MESSAGES = [
-    { max: 2, text: 'Sua gestão PJ tem riscos sérios. A Contrata PJ pode ajudar a organizar tudo.' },
-    { max: 4, text: 'Você vai bem — mas os erros podem custar caro na prática.' },
-    { max: 5, text: 'Impressionante! Quer ver como a Contrata PJ vai além do básico?' }
+  const ICON_DANGER  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  const ICON_WARNING = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>';
+  const ICON_SUCCESS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>';
+
+  // faixas de resultado (8 questões) — alertas sensacionalistas
+  const TIERS = [
+    {
+      max: 3, cls: 'tier-danger', icon: ICON_DANGER, headline: 'Atenção!',
+      message: 'Sua gestão de PJ pode estar EXPOSTA a riscos trabalhistas e fiscais graves. Cada brecha dessas pode virar processo — e custar muito caro. Bora resolver isso agora?'
+    },
+    {
+      max: 6, cls: 'tier-warning', icon: ICON_WARNING, headline: 'Você está no caminho',
+      message: 'Você manda bem no básico — mas ainda há brechas perigosas que podem sair caro. Falta pouco para blindar de vez a sua operação PJ.'
+    },
+    {
+      max: 8, cls: 'tier-success', icon: ICON_SUCCESS, headline: 'Muito bem!',
+      message: 'Impressionante! Você domina a gestão de PJ. Quer ver como a Contrata PJ leva a sua operação para o próximo nível?'
+    }
   ];
 
   function showResult() {
-    const s   = state.score;
-    const msg = MESSAGES.find(m => s <= m.max).text;
+    const s    = state.score;
+    const tier = TIERS.find(t => s <= t.max);
+
     document.getElementById('res-score').textContent   = s;
     document.getElementById('res-title').textContent   = `${s} de ${CARDS.length} corretas!`;
-    document.getElementById('res-message').textContent = msg;
+    document.getElementById('res-message').textContent = tier.message;
+
+    document.getElementById('result-alert').className   = 'result-alert ' + tier.cls;
+    document.getElementById('result-icon').innerHTML    = tier.icon;
+    document.getElementById('result-headline').textContent = tier.headline;
+
+    // colore o hero e o círculo conforme a faixa
+    document.getElementById('result-hero').className = 'score-wrap ' + tier.cls;
+    document.getElementById('res-score').className   = 'score-circle ' + tier.cls;
+
     showScreen('screen-result');
   }
 
@@ -327,7 +376,7 @@
   }
 
   // URL da Edge Function — troque pela URL real após linkar o projeto Supabase
-  const EDGE_FN_URL = 'https://hyper-sites-landing-pages.supabase.co/functions/v1/save-lead';
+  const EDGE_FN_URL = 'https://kisteehhsgnyufyrvxxh.supabase.co/functions/v1/save-lead';
 
   function saveLead() {
     const lead = { ...state.lead, score: state.score, answers: [...state.answers] };

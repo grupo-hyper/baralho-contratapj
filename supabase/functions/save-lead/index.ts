@@ -6,7 +6,6 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req: Request) => {
-  // CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -22,9 +21,8 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     const { name, email, phone, company, score, answers, event } = body;
 
-    // validação dos campos obrigatórios
-    if (!name || !email || !company || score === undefined) {
-      return new Response(JSON.stringify({ error: 'Campos obrigatórios: name, email, company, score' }), {
+    if (!name || !email) {
+      return new Response(JSON.stringify({ error: 'Campos obrigatórios: name, email' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -35,16 +33,20 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
+    // usa a estrutura existente da tabela leads
     const { data, error } = await supabase
       .from('leads')
       .insert({
-        name,
+        page_slug: 'baralho-conarh-2026',
+        nome:      name,
         email,
-        phone: phone ?? null,
-        company,
-        score,
-        answers: answers ?? null,
-        event: event ?? 'CONARH 2026',
+        whatsapp:  phone ?? null,
+        metadata: {
+          company,
+          score,
+          answers,
+          event: event ?? 'CONARH 2026',
+        },
       })
       .select('id')
       .single();
