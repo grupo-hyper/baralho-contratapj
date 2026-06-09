@@ -155,19 +155,8 @@ body {
   letter-spacing: 0;
 }
 
-/* número decorativo no canto */
-.card-surface .q-number {
-  position: absolute;
-  top: 14px;
-  right: 18px;
-  font-size: 64px;
-  font-weight: 900;
-  color: rgba(94,124,255,0.08);
-  line-height: 1;
-  letter-spacing: -.04em;
-  user-select: none;
-  pointer-events: none;
-}
+/* número decorativo no canto — removido para não sobrepor o texto */
+.card-surface .q-number { display: none; }
 
 /* ─── Flip card (baralho) ─────────────────────────────────── */
 .deck-wrap {
@@ -178,7 +167,7 @@ body {
 .flip-card {
   position: relative;
   width: 100%;
-  min-height: 300px;
+  min-height: 230px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -186,7 +175,7 @@ body {
 .flip-inner {
   position: relative;
   width: 100%;
-  min-height: 300px;
+  min-height: 230px;
   transition: transform .7s var(--ease);
   transform-style: preserve-3d;
 }
@@ -300,6 +289,7 @@ body {
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
+  justify-content: center;
   padding: 24px 22px;
   background: linear-gradient(160deg, #11163C 0%, #0B0F2E 100%);
   border: 1.5px solid rgba(255,255,255,0.12);
@@ -314,17 +304,7 @@ body {
   height: 4px;
   background: linear-gradient(90deg, var(--blue-dark), var(--blue), transparent);
 }
-.flip-front .q-number {
-  position: absolute;
-  top: 16px;
-  right: 20px;
-  font-size: 72px;
-  font-weight: 900;
-  color: rgba(94,124,255,0.08);
-  line-height: 1;
-  letter-spacing: -.04em;
-  user-select: none;
-}
+.flip-front .q-number { display: none; }
 
 /* ─── Choices ─────────────────────────────────────────────── */
 .choices {
