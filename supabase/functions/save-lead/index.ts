@@ -19,7 +19,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { name, email, phone, company, score, answers, event } = body;
+    const { name, email, phone, company, score, total, answers, quizIds, event } = body;
 
     if (!name || !email) {
       return new Response(JSON.stringify({ error: 'Campos obrigatórios: name, email' }), {
@@ -44,7 +44,9 @@ Deno.serve(async (req: Request) => {
         metadata: {
           company,
           score,
+          total: total ?? null,
           answers,
+          quizIds: quizIds ?? null,
           event: event ?? 'CONARH 2026',
         },
       })

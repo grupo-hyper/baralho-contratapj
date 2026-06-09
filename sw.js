@@ -1,4 +1,4 @@
-const CACHE = 'cpj-baralho-v4';
+const CACHE = 'cpj-baralho-v5';
 const ASSETS = [
   '/',
   '/play/',

@@ -164,7 +164,7 @@
 
 <script src="../data/cards.js"></script>
 <script>
-  let state = { lead: null, currentIndex: 0, answers: [], score: 0 };
+  let state = { lead: null, quiz: [], currentIndex: 0, answers: [], score: 0 };
 
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -188,6 +188,7 @@
     if (!name || !emailRe.test(email) || !phoneOk || !company) return;
 
     state.lead = { name, email, phone, company, timestamp: new Date().toISOString() };
+    state.quiz = pickQuiz();          // sorteia 8 questões do banco
     state.currentIndex = 0;
     state.answers = [];
     state.score = 0;
@@ -204,24 +205,24 @@
 
   // "Faltam N questões" — quantas ainda restam APÓS a questão atual
   function remainingLabel(index) {
-    const left = CARDS.length - (index + 1);
+    const left = state.quiz.length - (index + 1);
     if (left <= 0)   return 'Última questão!';
     if (left === 1)  return 'Falta 1 questão';
     return `Faltam ${left} questões`;
   }
 
   function showQuestion(index) {
-    const card    = CARDS[index];
-    const pct     = (index / CARDS.length) * 100;
+    const card    = state.quiz[index];
+    const pct     = (index / state.quiz.length) * 100;
     const letters = ['A', 'B', 'C', 'D'];
 
-    document.getElementById('q-counter').textContent   = `${index + 1} / ${CARDS.length}`;
+    document.getElementById('q-counter').textContent   = `${index + 1} / ${state.quiz.length}`;
     document.getElementById('q-tag').textContent        = `Questão ${index + 1}`;
     document.getElementById('q-text').textContent       = card.question;
     document.getElementById('q-number').textContent     = index + 1;
     document.getElementById('q-back-num').textContent   = index + 1;
     document.getElementById('q-progress').style.width  = pct + '%';
-    document.getElementById('q-step').textContent       = `Questão ${index + 1} de ${CARDS.length}`;
+    document.getElementById('q-step').textContent       = `Questão ${index + 1} de ${state.quiz.length}`;
     document.getElementById('q-left').textContent       = remainingLabel(index);
 
     // alterna a variação de verso da carta
@@ -254,23 +255,23 @@
 
   function selectAnswer(cardIndex, chosenIndex) {
     state.answers[cardIndex] = chosenIndex;
-    const correct = chosenIndex === CARDS[cardIndex].correctIndex;
+    const correct = chosenIndex === state.quiz[cardIndex].correctIndex;
     if (correct) state.score++;
     showReveal(cardIndex, chosenIndex, correct);
   }
 
   function showReveal(cardIndex, chosenIndex, correct) {
-    const card    = CARDS[cardIndex];
+    const card    = state.quiz[cardIndex];
     const letters = ['A', 'B', 'C', 'D'];
-    const pct     = ((cardIndex + 1) / CARDS.length) * 100;
+    const pct     = ((cardIndex + 1) / state.quiz.length) * 100;
 
-    document.getElementById('r-counter').textContent  = `${cardIndex + 1} / ${CARDS.length}`;
+    document.getElementById('r-counter').textContent  = `${cardIndex + 1} / ${state.quiz.length}`;
     document.getElementById('r-text').textContent     = card.question;
     document.getElementById('r-number').textContent   = cardIndex + 1;
     document.getElementById('r-progress').style.width = pct + '%';
-    document.getElementById('r-step').textContent     = `Questão ${cardIndex + 1} de ${CARDS.length}`;
+    document.getElementById('r-step').textContent     = `Questão ${cardIndex + 1} de ${state.quiz.length}`;
     document.getElementById('r-left').textContent     =
-      cardIndex === CARDS.length - 1 ? 'Fim do quiz!' : remainingLabel(cardIndex);
+      cardIndex === state.quiz.length - 1 ? 'Fim do quiz!' : remainingLabel(cardIndex);
 
     const tag = document.getElementById('r-tag');
     tag.textContent = correct ? '✓ Acertou!' : '✗ Errou desta';
@@ -299,14 +300,14 @@
     expEl.textContent = card.explanation;
 
     document.getElementById('btn-next').textContent =
-      cardIndex === CARDS.length - 1 ? 'Ver resultado →' : 'Próxima →';
+      cardIndex === state.quiz.length - 1 ? 'Ver resultado →' : 'Próxima →';
 
     showScreen('screen-reveal');
   }
 
   function nextQuestion() {
     const next = state.currentIndex + 1;
-    if (next >= CARDS.length) {
+    if (next >= state.quiz.length) {
       saveLead();
       showResult();
     } else {
@@ -340,7 +341,7 @@
     const tier = TIERS.find(t => s <= t.max);
 
     document.getElementById('res-score').textContent   = s;
-    document.getElementById('res-title').textContent   = `${s} de ${CARDS.length} corretas!`;
+    document.getElementById('res-title').textContent   = `${s} de ${state.quiz.length} corretas!`;
     document.getElementById('res-message').textContent = tier.message;
 
     document.getElementById('result-alert').className   = 'result-alert ' + tier.cls;
@@ -363,7 +364,7 @@
     const letters = ['A', 'B', 'C', 'D'];
     list.classList.remove('hidden');
     list.innerHTML = '<h3 style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;">Respostas que você errou</h3>';
-    CARDS.forEach((card, i) => {
+    state.quiz.forEach((card, i) => {
       if (state.answers[i] !== card.correctIndex) {
         list.innerHTML += `
           <div style="margin-bottom:12px;padding:14px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;">
@@ -379,7 +380,13 @@
   const EDGE_FN_URL = 'https://kisteehhsgnyufyrvxxh.supabase.co/functions/v1/save-lead';
 
   function saveLead() {
-    const lead = { ...state.lead, score: state.score, answers: [...state.answers] };
+    const lead = {
+      ...state.lead,
+      score: state.score,
+      total: state.quiz.length,
+      answers: [...state.answers],
+      quizIds: state.quiz.map(c => c.id),   // quais questões caíram (banco aleatório)
+    };
 
     // salva localmente (fallback offline)
     const leads = JSON.parse(localStorage.getItem('cpj_leads') || '[]');
@@ -396,7 +403,9 @@
         phone:   lead.phone,
         company: lead.company,
         score:   lead.score,
+        total:   lead.total,
         answers: lead.answers,
+        quizIds: lead.quizIds,
         event:   'CONARH 2026',
       }),
     }).catch(() => {

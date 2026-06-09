@@ -198,7 +198,7 @@
           <td>${l.company}</td>
           <td style="font-size:11px;">${l.phone || '—'}</td>
           <td style="font-size:11px;color:var(--text-muted);">${l.email}</td>
-          <td style="text-align:center;font-weight:700;color:#8FA8FF;">${l.score}/${CARDS.length}</td>
+          <td style="text-align:center;font-weight:700;color:#8FA8FF;">${l.score}/${l.total || QUIZ_SIZE}</td>
           <td style="font-size:11px;">${time}</td>
         </tr>`;
       });
